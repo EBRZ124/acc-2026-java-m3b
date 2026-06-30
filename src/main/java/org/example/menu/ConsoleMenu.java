@@ -181,19 +181,20 @@ public class ConsoleMenu {
                 1. Credit Card
                 2. PayPal
                 3. Gift Card
+                4. Bank Transfer
                 """);
         int option;
         while (true) {
             System.out.print("Enter option of choice: ");
             try {
                 option = Integer.parseInt(scanner.nextLine().trim());
-                if (option < 1 || option > 3) {
-                    System.out.println("Please choose 1, 2, or 3.");
+                if (option < 1 || option > 4) {
+                    System.out.print("Please choose 1, 2, 3, or 4: ");
                     continue;
                 }
                 break;
             } catch (NumberFormatException e) {
-                System.out.println("Please enter a valid number.");
+                System.out.print("Please enter a valid number. ");
             }
         }
 
@@ -201,6 +202,7 @@ public class ConsoleMenu {
             case 1 -> createCreditCardPayment();
             case 2 -> createPaypalPayment();
             case 3 -> createGiftCardPayment();
+            case 4 -> createBankTransferPayment();
             default -> throw new IllegalArgumentException("Invalid payment method");
         };
 
@@ -281,6 +283,35 @@ public class ConsoleMenu {
         double giftCardBalance = validateGiftCardBalance();
 
         return PaymentMethodFactory.createGiftCardPayment(giftCardNumber, giftCardBalance);
+    }
+
+    private double validateTransferAmount(){
+        while (true){
+            System.out.print("Enter transfer amount: ");
+            String input = scanner.nextLine().trim();
+            try {
+                double amount = Double.parseDouble(input);
+                if (amount <= 0) {
+                    System.out.print("Transfer amount must be greater than 0. ");
+                    continue;
+                }
+                return amount;
+            } catch (NumberFormatException e){
+                System.out.print("Not a valid number! ");
+            }
+        }
+    }
+
+    private PaymentMethod createBankTransferPayment(){
+        String accountIdType = "Account ID";
+        String accountId = validateNumberForPayments(accountIdType);
+
+        String nameType = "Account holder name";
+        String accountHolderName = validateNameConvention(nameType);
+
+        double transferAmount = validateTransferAmount();
+
+        return PaymentMethodFactory.createBankTransferPayment(accountId, accountHolderName, transferAmount);
     }
 
     private void printMenu(){

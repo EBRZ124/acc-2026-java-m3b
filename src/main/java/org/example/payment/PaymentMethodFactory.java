@@ -13,4 +13,8 @@ public class PaymentMethodFactory {
         return new GiftCardPayment(giftCardCode, availabelBalance);
     }
 
+    public static PaymentMethod createBankTransferPayment(String accountId, String accountHolderName, double transferAmount) {
+        return new BankTransferPayment(accountId, accountHolderName, transferAmount);
+    }
+
 }
