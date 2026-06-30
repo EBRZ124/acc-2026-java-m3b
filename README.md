@@ -22,6 +22,6 @@ User should be able to:
 - Pay for the order
 
 ## Stretch goals
-- Add a new payment method, for example crypto payment or bank transfer
+- Add a new payment method, for example crypto payment or bank transfer <- Added in my solution
 - Add tax calculation using AppConfig
 - Save completed orders in memory
