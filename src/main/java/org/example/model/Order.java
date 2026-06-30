@@ -17,12 +17,23 @@ public class Order {
 
     public void addItem(OrderItem item){
         // TODO: prevent adding items if order is already paid
+        if (status == OrderStatus.PAID) {
+            System.out.println("The order is paid for. This app only allows a single purchase");
+            return;
+        }
         items.add(item);
     }
 
     public double calculateTotal(){
         // TODO: calculate total from all order items (including discounts)
-        return 0;
+
+        double discount = 1.0;
+        double total = 0.0;
+
+        for (OrderItem item : items){
+            total += item.calculateTotal() * discount;
+        }
+        return total;
     }
 
     public void markAsPaid(){
@@ -50,6 +61,7 @@ public class Order {
     public static Builder builder(){
         return new Builder();
     }
+
     public static class Builder{
         private String customerName;
         private List<OrderItem> items = new ArrayList<>();
@@ -61,8 +73,10 @@ public class Order {
             this.items.add(item);
             return this;
         }
-        public Order build(){
-            // TODO: validate customerName
+        public Order build() {
+            if (customerName == null || customerName.isBlank()) {
+                throw new IllegalStateException("Customer name cannot be empty.");
+            }
             return new Order(this);
         }
     }

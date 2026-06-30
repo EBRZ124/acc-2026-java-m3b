@@ -7,7 +7,9 @@ public class GiftCardPayment extends PaymentMethod{
     private double balance;
 
     public GiftCardPayment(String code, double balance) {
-        // TODO: contructor
+        super("PayPal");
+        this.code = code;
+        this.balance = balance;
     }
 
     @Override

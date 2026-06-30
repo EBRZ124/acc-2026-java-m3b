@@ -24,6 +24,7 @@ public class ConsoleMenu {
         while(running){
             printMenu();
 
+            System.out.print("Pick an option for creating or continuing an order: ");
             int option = Integer.parseInt(scanner.nextLine());
 
             switch (option){
@@ -38,47 +39,129 @@ public class ConsoleMenu {
     }
 
     private void createOrder(){
-        System.out.println("Customer name:");
-        String customerName = scanner.nextLine();
+        while (true) {
+            System.out.print("Customer name: ");
+            String customerName = scanner.nextLine();
 
-        currentOrder = Order.builder()
-                .customerName(customerName)
-                .build();
-        System.out.println("Order created for " + customerName);
+            try {
+                currentOrder = Order.builder()
+                        .customerName(customerName)
+                        .build();
+                System.out.println("Order created for " + customerName);
+                return;
+            } catch (IllegalStateException e) {
+                System.out.println(e.getMessage() + " Please try again.");
+            }
+        }
+    }
+
+    private String validateItemName() {
+        String itemName;
+        while (true) {
+            System.out.print("Enter item name: ");
+            itemName = scanner.nextLine().trim();
+            if(!itemName.isEmpty()){
+                return itemName;
+            }
+            System.out.print("Item name cannot be empty! ");
+        }
+    }
+    private double validateItemPrice() {
+        while (true) {
+            System.out.print("Enter items price: ");
+            String input = scanner.nextLine().trim();
+            try {
+                double price = Double.parseDouble(input);
+                if (price <= 0) {
+                    System.out.println("Price must be greater than 0.");
+                    continue;
+                }
+                return price;
+            } catch (NumberFormatException e) {
+                System.out.println("That's not a valid number, try again.");
+            }
+        }
+    }
+
+    private int validateItemQuantity(){
+        while (true) {
+            System.out.print("Enter quantity: ");
+            String input = scanner.nextLine().trim();
+            try {
+                int quantity = Integer.parseInt(input);
+                if (quantity <= 0){
+                    System.out.print("Quantity must be at least 1! ");
+                    continue;
+                }
+                return quantity;
+            } catch (NumberFormatException e){
+                System.out.print("Not a valid number! ");
+            }
+        }
+    }
+
+    public void validateOrderExistance() {
+        if (currentOrder== null || currentOrder.getCustomerName().isEmpty()){
+            System.out.println("Order doesn't exist. Please make one.");
+            createOrder();
+        }
     }
 
     private void addItem(){
-        // TODO: check if order exists
+        validateOrderExistance();
 
-        System.out.println("Item name:");
-        String itemName = scanner.nextLine();
+        String itemName = validateItemName();
+        double itemPrice = validateItemPrice();
+        int itemQuantity = validateItemQuantity();
 
-        System.out.println("Price:");
-        double price = Double.parseDouble(scanner.nextLine());
-
-        System.out.println("Quantity:");
-        int quantity = Integer.parseInt(scanner.nextLine());
-
-        currentOrder.addItem(new OrderItem(itemName, price, quantity));
+        currentOrder.addItem(new OrderItem(itemName, itemPrice, itemQuantity));
         System.out.println("Item added to order");
     }
 
+    public void validateViewingOrder() {
+        if (currentOrder == null){
+            System.out.println("Your haven't made an order");
+            createOrder();
+        } else if (currentOrder.getItems().isEmpty()) {
+            System.out.println("Your cart is empty:");
+        }
+    }
+
     private void viewOrder(){
-        // TODO: check if order exists
+        validateViewingOrder();
 
         System.out.println("Customer: " + currentOrder.getCustomerName());
         System.out.println("Status: " +  currentOrder.getStatus());
-        System.out.println("Items:");
+        System.out.println("Items: ");
 
         for (OrderItem item : currentOrder.getItems()){
             System.out.println("- " + item);
         }
 
-        System.out.println("Total: " + currentOrder.calculateTotal());
+        System.out.println("Total: $" + currentOrder.calculateTotal());
+    }
+
+    public boolean validatePayingForOrder() {
+        if (currentOrder == null){
+            System.out.print("There is nothing to pay for, you haven't made an order. ");
+            createOrder();
+        }
+        if (currentOrder.getItems().isEmpty()) {
+            System.out.print("Your order has no items. Add an item now? (1 = yes, 0 = no): ");
+            int choice = Integer.parseInt(scanner.nextLine().trim());
+            if (choice == 1){
+                addItem();
+            } else {
+                return false;
+            }
+        }
+        return !currentOrder.getItems().isEmpty();
     }
 
     private void payOrder(){
-        // TODO: check if order exists
+        if (!validatePayingForOrder()){
+            return;
+        }
 
         System.out.println("""
                 Select payment method:
@@ -86,6 +169,7 @@ public class ConsoleMenu {
                 2. PayPal
                 3. Gift Card
                 """);
+        System.out.print("Enter option of choice: ");
         int option = Integer.parseInt(scanner.nextLine());
 
         PaymentMethod paymentMethod = switch(option){
@@ -100,23 +184,33 @@ public class ConsoleMenu {
     }
 
     private PaymentMethod createCreditCardPayment(){
-        System.out.println("Card number:");
+        System.out.print("Card number: ");
         String cardNumber =  scanner.nextLine();
 
-        System.out.println("Card holder name:");
+        System.out.print("Card holder name: ");
         String cardHolderName =  scanner.nextLine();
 
+        currentOrder.markAsPaid();
         return PaymentMethodFactory.createCreditCardPayment(cardNumber,cardHolderName);
     }
 
     private  PaymentMethod createPaypalPayment(){
-        // TODO
-        return null;
+        System.out.print("PayPal email: ");
+        String email =  scanner.nextLine();
+
+        currentOrder.markAsPaid();
+        return PaymentMethodFactory.createPaypalPayment(email);
     }
 
     private PaymentMethod createGiftCardPayment(){
-        // TODO
-        return null;
+        System.out.print("Enter gift card number: ");
+        String giftCardNumber =  scanner.nextLine();
+
+        System.out.print("Available balance: ");
+        double giftCardBalance =  scanner.nextDouble();
+
+        currentOrder.markAsPaid();
+        return PaymentMethodFactory.createGiftCardPayment(giftCardNumber, giftCardBalance);
     }
 
     private void printMenu(){
