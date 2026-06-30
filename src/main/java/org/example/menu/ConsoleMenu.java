@@ -183,33 +183,105 @@ public class ConsoleMenu {
         System.out.println(result.getMessage());
     }
 
-    private PaymentMethod createCreditCardPayment(){
-        System.out.print("Card number: ");
-        String cardNumber =  scanner.nextLine();
+    private String validateCardNumber() {
+        while (true) {
+            System.out.print("Enter card number: ");
+            String input = scanner.nextLine().trim();
 
-        System.out.print("Card holder name: ");
-        String cardHolderName =  scanner.nextLine();
-
-        currentOrder.markAsPaid();
-        return PaymentMethodFactory.createCreditCardPayment(cardNumber,cardHolderName);
+            if (input.isEmpty()) {
+                System.out.println("Card number cannot be empty.");
+                continue;
+            }
+            if (!input.matches("\\d+")) {
+                System.out.println("Card number must contain only digits.");
+                continue;
+            }
+            try {
+                Long.parseLong(input);
+                return input;
+            } catch (NumberFormatException e) {
+                System.out.println("Card number is too long to be valid.");
+            }
+        }
     }
 
-    private  PaymentMethod createPaypalPayment(){
-        System.out.print("PayPal email: ");
-        String email =  scanner.nextLine();
+    private String validateCardHolderName() {
+        while (true) {
+            System.out.print("Enter card holder name: ");
+            String input = scanner.nextLine().trim();
+            if (input.isEmpty()) {
+                System.out.println("Card holder name cannot be empty.");
+                continue;
+            }
+            return input;
+        }
+    }
 
-        currentOrder.markAsPaid();
+    private PaymentMethod createCreditCardPayment(){
+        String cardNumber = validateCardNumber();
+        String cardHolderName = validateCardHolderName();
+
+        return PaymentMethodFactory.createCreditCardPayment(cardNumber, cardHolderName);
+    }
+
+    private String validateEmail() {
+        while (true) {
+            System.out.print("Enter email: ");
+            String input = scanner.nextLine().trim();
+
+            if (input.isEmpty()) {
+                System.out.println("Email cannot be empty.");
+                continue;
+            }
+            return input;
+        }
+    }
+
+    private PaymentMethod createPaypalPayment(){
+        String email = validateEmail();
+
         return PaymentMethodFactory.createPaypalPayment(email);
     }
 
+    private String validateGiftCardNumber() {
+        while (true) {
+            System.out.print("Enter gift card number: ");
+            String input = scanner.nextLine().trim();
+
+            if (input.isEmpty()) {
+                System.out.println("Gift card number cannot be empty.");
+                continue;
+            }
+            try {
+                Long.parseLong(input);
+                return input;
+            } catch (NumberFormatException e) {
+                System.out.println("Gift card number must be a valid number.");
+            }
+        }
+    }
+
+    private double validateGiftCardBalance(){
+        while (true){
+            System.out.print("Available balance: ");
+            String input = scanner.nextLine().trim();
+            try {
+                double balance = Double.parseDouble(input);
+                if (balance < 0) {
+                    System.out.println("Balance cannot be negative.");
+                    continue;
+                }
+                return balance;
+            } catch (NumberFormatException e){
+                System.out.println("Not a valid number!");
+            }
+        }
+    }
+
     private PaymentMethod createGiftCardPayment(){
-        System.out.print("Enter gift card number: ");
-        String giftCardNumber =  scanner.nextLine();
+        String giftCardNumber = validateGiftCardNumber();
+        double giftCardBalance = validateGiftCardBalance();
 
-        System.out.print("Available balance: ");
-        double giftCardBalance =  scanner.nextDouble();
-
-        currentOrder.markAsPaid();
         return PaymentMethodFactory.createGiftCardPayment(giftCardNumber, giftCardBalance);
     }
 
